@@ -50,6 +50,7 @@ fake[ _]*.*
 
 # Django #
 migrations/
+!migrations/__init__.py
 
 # Python #
 __pycache__/
