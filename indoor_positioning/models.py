@@ -9,16 +9,16 @@ class Data(models.Model):
         ordering = ['-time']
 
     id = models.BigAutoField(primary_key=True)
-    raw_data = models.TextField('原数据')
+    json_data = models.TextField('原数据')
     time = models.DateTimeField('创建时间', auto_now_add=True)
 
     @property
-    def data(self):
-        return json.loads(self.raw_data)
+    def raw_data(self):
+        return json.loads(self.json_data)
 
-    @data.setter
-    def data(self, val):
-        self.raw_data = json.dumps(val)
+    @raw_data.setter
+    def raw_data(self, val):
+        self.json_data = json.dumps(val)
 
 
 class WifiData(Data):

@@ -1,0 +1,22 @@
+<h3>最后一条数据</h3>
+
+<h4>接收信息：</h4>
+<p>数据库ID: {{data.id}}</p>
+<p>时间: {{data.time}}</p>
+<br/>
+
+<h4>设备信息：</h4>
+{% for k, v in data.raw_data.items %}
+<p>{% if k != 'data' %}{{k}}: {{v}}{% endif %}</p>
+{% endfor %}
+<br/>
+
+<h4>抓包信息：</h4>
+{% for divice in data.raw_data.data %}
+    <p style="text-indent: 2em">
+    {% for k, v in divice.items %}
+        {{k}}: {{v}}
+        {% if not forloop.last %};&nbsp;{% endif %}
+    {% endfor %}
+    </p>
+{% endfor %}
