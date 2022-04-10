@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from operator import mod
+from typing import List, Callable, Optional, Union
 
 from django.db import models
 
@@ -8,7 +8,6 @@ __all__ = [
     'Data',
     'WifiData',
     'SensedDevice',
-    'SensedSenser',
     'SensedRouter',
     'SensedMobile',
 ]
@@ -25,7 +24,7 @@ class Data(models.Model):
     time = models.DateTimeField('创建时间', auto_now_add=True)
 
     @property
-    def raw_data(self):
+    def raw_data(self) -> dict:
         return json.loads(self.json_data)
 
     @raw_data.setter
@@ -45,7 +44,7 @@ class WifiData(Data):
     longitude = models.FloatField('精度', blank=True, null=True)
 
     @property
-    def data(self):
+    def data(self) -> List[dict]:
         return self.raw_data['data']
 
     def set_default(self, **field_values):
@@ -60,7 +59,7 @@ class WifiData(Data):
                         from_field, cast = from_field
                         setattr(self, field, cast(raw_data.get(from_field)))
                     else:
-                        setattr(self, field, raw_data.get(from_field))
+                        setattr(self, field, raw_data[from_field])
                 except:
                     pass
 
@@ -107,23 +106,16 @@ class SensedDevice(models.Model):
     rssi4: float = models.FloatField('rssi4', blank=True, null=True)
 
 
-class SensedSenser(SensedDevice):
-    '''被嗅探的嗅探器设备'''
-    class Meta:
-        verbose_name = '嗅探器设备'
-        verbose_name_plural = verbose_name
-
-    device_name: str = models.CharField('嗅探器名称', max_length=30)
-
-
 class SensedRouter(SensedDevice):
     '''被嗅探的路由器设备'''
     class Meta:
         verbose_name = '路由器设备'
         verbose_name_plural = verbose_name
 
-    # Omits other information (e.g. tmc) for simplicity.
     device_name: str = models.CharField('路由器名称', max_length=50)
+    is_senser: bool = models.BooleanField('嗅探器', default=False)
+    # Omits other information (e.g. tmc) for simplicity.
+    # connected_mac: str = None
 
 
 class SensedMobile(SensedDevice):
@@ -134,11 +126,11 @@ class SensedMobile(SensedDevice):
         verbose_name = '移动设备'
         verbose_name_plural = verbose_name
 
-    # class Status(models.[]choices): NotImplemented
     class Status(models.TextChoices):
-        CONNECTED = 'connected'
-        CONNECTING = 'connecting'
-        NOTCONNECTED = 'not connected'
+        CONNECTED = 'connected', '已连接'
+        CONNECTING = 'connecting', '连接中'
+        NOTCONNECTED = 'not connected', '未连接'
+
     status = models.CharField(
         'WIFI连接状态', max_length=20, choices=Status.choices)
     connected_ssid: str = models.CharField(
@@ -146,6 +138,7 @@ class SensedMobile(SensedDevice):
     connected_mac: str = models.CharField(
         "所连接WIFI MAC地址", max_length=20, blank=True, null=True)
 
-    # TODO: Adds essid if necessary.
+    # TODO: Adds essid and sleeping if necessary.
+    # sleeping: bool = models.BooleanField('已休眠', default=False)
     # essid0-6: str = NotImplemented, maybe foreignkey
     # class EarlyWifiConnection: ForeignKey to SensedMobile
