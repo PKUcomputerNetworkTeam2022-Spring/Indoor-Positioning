@@ -1,16 +1,21 @@
 import json
-import string
-import random
-from datetime import datetime
-
 # 为使IDE正常检测unittest，需要激活django环境
 # 只依靠python manage.py test运行时则不需要以下三行
-import os, django
+import os
+import random
+import string
+from datetime import datetime
+
+import django
+from torch import rand
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'managing.settings')
 django.setup()
 
-from django.test import TestCase, Client
-from indoor_positioning.models import WifiData, Data
+from django.test import Client, TestCase
+
+from indoor_positioning.models import Data, WifiData
+
 
 # Create your tests here.
 class ReceiveTestCase(TestCase):
@@ -20,6 +25,7 @@ class ReceiveTestCase(TestCase):
         self.sense_datas = (
             self.create_sense_datas()
             + self.create_router_datas()
+            + self.create_mobile_datas()
         )
         self.send_time = datetime.strptime(datetime.now().strftime('%c'), '%c')
         self.raw_data = {
@@ -77,10 +83,19 @@ class ReceiveTestCase(TestCase):
         return router_datas
 
     def create_mobile_data(self, mac=None, rssi=None, rrange=None, **others):
-        raise NotImplementedError
+        return self.create_sense_data(mac, rssi, rrange, **others)
 
-    def create_mobile_datas(self, k=0):
-        raise NotImplementedError
+    def create_mobile_datas(self):
+        ts_choices = ["PKU", "PKU Visitor", "PKU Secure", "DataSky_f",]
+        mobile_datas = [
+            # Connected.
+            self.create_mobile_data(ts=random.choice(ts_choices), tmc=self.rand_mac(), tc='Y'),
+            # Connecting.
+            self.create_mobile_data(ts=random.choice(ts_choices), tmc=self.rand_mac(), tc='N'),
+            # Not Connected.
+            self.create_mobile_data(),
+        ]
+        return mobile_datas
 
     def test_receive(self):
         self.assertEqual(self.response.status_code, 200)

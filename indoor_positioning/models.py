@@ -1,7 +1,8 @@
-from operator import mod
-from django.db import models
 import json
 from datetime import datetime
+from operator import mod
+
+from django.db import models
 
 __all__ = [
     'Data',
@@ -12,7 +13,7 @@ __all__ = [
     'SensedMobile',
 ]
 
-# Create your models here.
+
 class Data(models.Model):
     class Meta:
         verbose_name = '原始数据'
@@ -62,7 +63,7 @@ class WifiData(Data):
                         setattr(self, field, raw_data.get(from_field))
                 except:
                     pass
-    
+
     def save(self, *args, **kwargs) -> None:
         self.set_default(
             mobile_id='id',
@@ -73,8 +74,10 @@ class WifiData(Data):
         )
         super().save(*args, **kwargs)
         if kwargs.get('force_insert', False):
-            try: self.time = datetime.strptime(self.raw_data['time'], '%c')
-            except: pass
+            try:
+                self.time = datetime.strptime(self.raw_data['time'], '%c')
+            except:
+                pass
             super().save(update_fields=['time'])
 
 
@@ -109,7 +112,8 @@ class SensedSenser(SensedDevice):
     class Meta:
         verbose_name = '嗅探器设备'
         verbose_name_plural = verbose_name
-    senser_name: str = models.CharField('嗅探器名称', max_length=30)
+
+    device_name: str = models.CharField('嗅探器名称', max_length=30)
 
 
 class SensedRouter(SensedDevice):
@@ -119,8 +123,7 @@ class SensedRouter(SensedDevice):
         verbose_name_plural = verbose_name
 
     # Omits other information (e.g. tmc) for simplicity.
-    router_name: str = models.CharField('路由器名称', max_length=50)
-
+    device_name: str = models.CharField('路由器名称', max_length=50)
 
 
 class SensedMobile(SensedDevice):
@@ -132,10 +135,16 @@ class SensedMobile(SensedDevice):
         verbose_name_plural = verbose_name
 
     # class Status(models.[]choices): NotImplemented
-    status = NotImplemented
-    # status包含连接状态(未连接，连接中，已连接)
-    connected_ssid: str = NotImplemented    # nullable
-    connected_mac: str = NotImplemented     # nullable
+    class Status(models.TextChoices):
+        CONNECTED = 'connected'
+        CONNECTING = 'connecting'
+        NOTCONNECTED = 'not connected'
+    status = models.CharField(
+        'WIFI连接状态', max_length=20, choices=Status.choices)
+    connected_ssid: str = models.CharField(
+        '所连接WIFI ssid', max_length=50, blank=True, null=True)
+    connected_mac: str = models.CharField(
+        "所连接WIFI MAC地址", max_length=20, blank=True, null=True)
 
     # TODO: Adds essid if necessary.
     # essid0-6: str = NotImplemented, maybe foreignkey
