@@ -43,6 +43,7 @@ Thumbs.db
 *[ _]old.*
 *[ _]fake.*
 fake[ _]*.*
+test/
 
 # IDE configs #
 .vscode/
