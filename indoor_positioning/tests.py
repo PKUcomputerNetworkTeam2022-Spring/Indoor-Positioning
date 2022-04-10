@@ -10,7 +10,7 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'managing.settings')
 django.setup()
 
-from django.test import Client, TestCase
+from django.test import TestCase
 
 from indoor_positioning.models import *
 
@@ -19,10 +19,12 @@ from indoor_positioning.models import *
 class ReceiveTestCase(TestCase):
     def setUp(self) -> None:
         self.device_id = "00f00000"
-        self.mac = "00:ff:00:00:00:ff"
+        self.mac = self.rand_mac()
+        self.sensor_count = 0
+        self.router_count = 5
+        self.mobile_count = {status: 1 for status in SensedMobile.Status}
         self.sense_datas = (
-            self.create_sense_datas()
-            + [self.create_router_data(router='DataSky_f00000', rrange=1.0)]
+            [self.create_router_data(router='DataSky_f00000', rrange=1.0)]
             + self.create_router_datas()
             + self.create_mobile_datas()
         )
@@ -37,21 +39,12 @@ class ReceiveTestCase(TestCase):
             "data": self.sense_datas,
         }
         self.json_data = json.dumps(self.raw_data)
-        self.response = Client().post('', {'data': self.json_data})
+        self.response = self.client.post('', {'data': self.json_data})
         self.insert_datas: WifiData = WifiData.objects.filter(
             mobile_id=self.device_id,
             mobile_mac=self.mac,
         )
         self.insert_data = self.insert_datas.first()
-        '''
-        self.sensed_sensor: SensedSensor = SensedSensor.objects.filter().first()
-        self.sensed_router: SensedRouter = SensedRouter.objects.filter().first()
-        self.sensed_mobile = {
-            'connected': SensedMobile.objects.filter(status=SensedMobile.Status.CONNECTED).first(),
-            'connecting': SensedMobile.objects.filter(status=SensedMobile.Status.CONNECTING).first(),
-            'not connected': SensedMobile.objects.filter(status=SensedMobile.Status.NOTCONNECTED).first(),
-        }
-        '''
         return super().setUp()
 
     def rand_mac(self):
@@ -69,40 +62,39 @@ class ReceiveTestCase(TestCase):
             **others,
         )
 
-    def create_sense_datas(self, k=2):
-        sensor_datas = [
-            self.create_sense_data()
-            for _ in range(k)
-            ]
-        return sensor_datas
-    
     def create_router_data(self, mac=None, rssi=None, rrange=None, router=None, **others):
         router = router or random.choices(string.printable, k=random.randint(1, 10))
         return self.create_sense_data(mac, rssi, rrange, router=router, **others)
 
-    def create_router_datas(self, k=5):
+    def create_router_datas(self):
         routers = ["PKU", "PKU Visitor", "PKU Secure"]
         router_datas = [
             self.create_router_data(router=random.choice(routers))
-            for _ in range(k)
+            for _ in range(self.router_count)
         ]
-        if k != 0:
+        if self.router_count != 0:
             router_datas[0].update(tmc=self.rand_mac())
         return router_datas
 
-    def create_mobile_data(self, mac=None, rssi=None, rrange=None, **others):
-        return self.create_sense_data(mac, rssi, rrange, **others)
+    def create_mobile_data(self, mac=None, rssi=None, rrange=None,
+                           status=SensedMobile.Status.NOTCONNECTED,
+                           ts_choices=[''],
+                           **others):
+        if status == SensedMobile.Status.NOTCONNECTED:
+            return self.create_sense_data(mac, rssi, rrange, **others)
+        return self.create_mobile_data(
+            ts=random.choice(ts_choices), tmc=self.rand_mac(),
+            tc='Y' if status == SensedMobile.Status.CONNECTED else 'N',
+        )
 
     def create_mobile_datas(self):
         ts_choices = ["PKU", "PKU Visitor", "PKU Secure", "DataSky_f"]
-        mobile_datas = [
-            # Connected.
-            self.create_mobile_data(ts=random.choice(ts_choices), tmc=self.rand_mac(), tc='Y'),
-            # Connecting.
-            self.create_mobile_data(ts=random.choice(ts_choices), tmc=self.rand_mac(), tc='N'),
-            # Not Connected.
-            self.create_mobile_data(),
-        ]
+        mobile_datas = []
+        for status, count in self.mobile_count.items():
+            mobile_datas.extend([
+                self.create_mobile_data(status=status, ts_choices=ts_choices)
+                for _ in range(count)
+            ])
         return mobile_datas
 
     def test_receive(self):
@@ -118,14 +110,26 @@ class ReceiveTestCase(TestCase):
         self.assertEqual(self.insert_data.time, self.send_time)
 
     def test_sense_sensor(self):
-        return
-        self.assertIsNotNone(self.sensed_sensor)
-    
+        self.assertEqual(
+            SensedRouter.objects.filter(
+                sensor=self.insert_data,
+                is_sensor=True,
+            ).count(), self.sensor_count + 1,
+        )
+
     def test_sense_router(self):
-        return
-        self.assertIsNotNone(self.sensed_router)
-    
+        self.assertEqual(
+            SensedRouter.objects.filter(
+                sensor=self.insert_data,
+                is_sensor=False,
+            ).count(), self.router_count,
+        )
+
     def test_sense_mobile(self):
-        return
-        for k, v in self.sensed_mobile.items():
-            self.assertIsNotNone(v)
+        for status, count in self.mobile_count.items():
+            self.assertEqual(
+                SensedMobile.objects.filter(
+                    sensor=self.insert_data,
+                    status=status,
+                ).count(), count, status
+            )
