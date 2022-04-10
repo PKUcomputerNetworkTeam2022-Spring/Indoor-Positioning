@@ -1,5 +1,4 @@
 import json
-import pdb
 from django.shortcuts import render
 from django.http import HttpRequest, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -14,11 +13,19 @@ def receiveData(request: HttpRequest):
         post_data = request.POST['data']
         raw_data = RawData(json_data=post_data)
         raw_data.save()
-        post_data = json.loads(post_data)
+        post_data = json.loads(post_data, strict=False)
         probe_id = post_data['id']
         for wifi_data in post_data['data']:
             WifiData.objects.create(
-                sender_id=probe_id, mobile_mac=wifi_data['mac'], rssi=wifi_data['rssi'], range=wifi_data['range'], raw_data=raw_data)
+                sender_id=probe_id,
+                mobile_mac=wifi_data.get('mac'),
+                rssi=wifi_data.get('rssi'),
+                range=wifi_data.get('range'),
+                rssi1=wifi_data.get('rssi1'),
+                rssi2=wifi_data.get('rssi2'),
+                rssi3=wifi_data.get('rssi3'),
+                rssi4=wifi_data.get('rssi4'),
+                raw_data=raw_data)
 
     # 简单展示最后一条原始嗅探数据
     data = RawData.objects.first()
