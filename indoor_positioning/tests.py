@@ -1,16 +1,19 @@
 import json
-import string
 import random
+import string
 from datetime import datetime
 
 # 为使IDE正常检测unittest，需要激活django环境
-# 只依靠python manage.py test运行时则不需要以下三行
-import os, django
+# 只依靠python manage.py test运行时则不需要以下四行
+import os
+import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'managing.settings')
 django.setup()
 
-from django.test import TestCase, Client
-from indoor_positioning.models import WifiData, Data
+from django.test import Client, TestCase
+
+from indoor_positioning.models import *
+
 
 # Create your tests here.
 class ReceiveTestCase(TestCase):
@@ -20,6 +23,7 @@ class ReceiveTestCase(TestCase):
         self.sense_datas = (
             self.create_sense_datas()
             + self.create_router_datas()
+            + self.create_mobile_datas()
         )
         self.send_time = datetime.strptime(datetime.now().strftime('%c'), '%c')
         self.raw_data = {
@@ -38,6 +42,15 @@ class ReceiveTestCase(TestCase):
             mobile_mac=self.mac,
         )
         self.insert_data = self.insert_datas.first()
+        '''
+        self.sensed_sensor: SensedSenser = SensedSenser.objects.filter().first()
+        self.sensed_router: SensedRouter = SensedRouter.objects.filter().first()
+        self.sensed_mobile = {
+            'connected': SensedMobile.objects.filter(status=SensedMobile.Status.CONNECTED).first(),
+            'connecting': SensedMobile.objects.filter(status=SensedMobile.Status.CONNECTING).first(),
+            'not connected': SensedMobile.objects.filter(status=SensedMobile.Status.NOTCONNECTED).first(),
+        }
+        '''
         return super().setUp()
 
     def rand_mac(self):
@@ -67,7 +80,7 @@ class ReceiveTestCase(TestCase):
         return self.create_sense_data(mac, rssi, rrange, router=router, **others)
 
     def create_router_datas(self, k=5):
-        routers = ["PKU", "PKU Visitor", "PKU Secure", "DataSky_f",]
+        routers = ["PKU", "PKU Visitor", "PKU Secure"]
         router_datas = [
             self.create_router_data(router=random.choice(routers))
             for _ in range(k)
@@ -77,10 +90,19 @@ class ReceiveTestCase(TestCase):
         return router_datas
 
     def create_mobile_data(self, mac=None, rssi=None, rrange=None, **others):
-        raise NotImplementedError
+        return self.create_sense_data(mac, rssi, rrange, **others)
 
-    def create_mobile_datas(self, k=0):
-        raise NotImplementedError
+    def create_mobile_datas(self):
+        ts_choices = ["PKU", "PKU Visitor", "PKU Secure", "DataSky_f"]
+        mobile_datas = [
+            # Connected.
+            self.create_mobile_data(ts=random.choice(ts_choices), tmc=self.rand_mac(), tc='Y'),
+            # Connecting.
+            self.create_mobile_data(ts=random.choice(ts_choices), tmc=self.rand_mac(), tc='N'),
+            # Not Connected.
+            self.create_mobile_data(),
+        ]
+        return mobile_datas
 
     def test_receive(self):
         self.assertEqual(self.response.status_code, 200)
@@ -93,3 +115,16 @@ class ReceiveTestCase(TestCase):
 
     def test_send_time(self):
         self.assertEqual(self.insert_data.time, self.send_time)
+
+    def test_sense_sensor(self):
+        return
+        self.assertIsNotNone(self.sensed_sensor)
+    
+    def test_sense_router(self):
+        return
+        self.assertIsNotNone(self.sensed_router)
+    
+    def test_sense_mobile(self):
+        return
+        for k, v in self.sensed_mobile.items():
+            self.assertIsNotNone(v)
