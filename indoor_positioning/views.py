@@ -27,6 +27,6 @@ def receiveData(request: HttpRequest):
                 rssi4=wifi_data.get('rssi4'),
                 raw_data=raw_data)
 
-    # 简单展示最后一条原始嗅探数据
+    # 简单展示最后一条原始数据
     data = RawData.objects.first()
     return render(request, 'receive.html', locals())
