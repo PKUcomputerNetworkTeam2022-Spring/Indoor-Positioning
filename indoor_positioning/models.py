@@ -1,3 +1,4 @@
+from operator import mod
 from django.db import models
 import json
 
@@ -92,8 +93,10 @@ class SensedDevice(models.Model):
     mac: str = models.CharField('MAC地址', max_length=20)
     rssi: float = models.FloatField('信号强度')
     range: float = models.FloatField('距离')
-    # 方案1: rssi: float = calculate_avg(raw RSSIs) (rssi一定至少有一个记录)
-    # 方案2: rssi和rssi1-4: int = NotImplemented nullable
+    rssi1: float = models.FloatField('rssi1', blank=True, null=True)
+    rssi2: float = models.FloatField('rssi2', blank=True, null=True)
+    rssi3: float = models.FloatField('rssi3', blank=True, null=True)
+    rssi4: float = models.FloatField('rssi4', blank=True, null=True)
 
 
 class SensedSenser(SensedDevice):
@@ -101,6 +104,7 @@ class SensedSenser(SensedDevice):
     class Meta:
         verbose_name = '嗅探器设备'
         verbose_name_plural = verbose_name
+    senser_name: str = models.CharField('嗅探器名称', max_length=30)
 
 
 class SensedRouter(SensedDevice):
@@ -109,7 +113,9 @@ class SensedRouter(SensedDevice):
         verbose_name = '路由器设备'
         verbose_name_plural = verbose_name
 
-    # connected_mac: str = NotImplemented nullable
+    # Omits other information (e.g. tmc) for simplicity.
+    router_name: str = models.CharField('路由器名称', max_length=50)
+
 
 
 class SensedMobile(SensedDevice):
@@ -126,5 +132,6 @@ class SensedMobile(SensedDevice):
     connected_ssid: str = NotImplemented    # nullable
     connected_mac: str = NotImplemented     # nullable
 
+    # TODO: Adds essid if necessary.
     # essid0-6: str = NotImplemented, maybe foreignkey
     # class EarlyWifiConnection: ForeignKey to SensedMobile
