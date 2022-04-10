@@ -22,6 +22,7 @@ class ReceiveTestCase(TestCase):
         self.mac = "00:ff:00:00:00:ff"
         self.sense_datas = (
             self.create_sense_datas()
+            + [self.create_router_data(router='DataSky_f00000', rrange=1.0)]
             + self.create_router_datas()
             + self.create_mobile_datas()
         )
@@ -43,7 +44,7 @@ class ReceiveTestCase(TestCase):
         )
         self.insert_data = self.insert_datas.first()
         '''
-        self.sensed_sensor: SensedSenser = SensedSenser.objects.filter().first()
+        self.sensed_sensor: SensedSensor = SensedSensor.objects.filter().first()
         self.sensed_router: SensedRouter = SensedRouter.objects.filter().first()
         self.sensed_mobile = {
             'connected': SensedMobile.objects.filter(status=SensedMobile.Status.CONNECTED).first(),
@@ -69,11 +70,11 @@ class ReceiveTestCase(TestCase):
         )
 
     def create_sense_datas(self, k=2):
-        senser_datas = [
+        sensor_datas = [
             self.create_sense_data()
             for _ in range(k)
             ]
-        return senser_datas
+        return sensor_datas
     
     def create_router_data(self, mac=None, rssi=None, rrange=None, router=None, **others):
         router = router or random.choices(string.printable, k=random.randint(1, 10))

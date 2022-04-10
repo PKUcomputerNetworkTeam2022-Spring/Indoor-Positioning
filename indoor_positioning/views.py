@@ -14,7 +14,7 @@ def receiveData(request: HttpRequest):
         wifi_data: WifiData = WifiData.objects.create(json_data=request.POST['data'])
         for sensed_data in wifi_data.data:
             basic_infos = dict(
-                senser=wifi_data,
+                sensor=wifi_data,
                 mac=sensed_data['mac'],
                 rssi=sensed_data['rssi'],
                 range=sensed_data['range'],
@@ -27,7 +27,7 @@ def receiveData(request: HttpRequest):
                 router_name: str = sensed_data['router']
                 SensedRouter.objects.create(
                     device_name=router_name,
-                    is_senser=router_name.startswith('DataSky_f'),
+                    is_sensor=router_name.startswith('DataSky_f'),
                     **basic_infos,
                 )
             else:

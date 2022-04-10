@@ -20,9 +20,9 @@ class WifiDataAdmin(admin.ModelAdmin):
 class SensedDeviceAdmin(admin.ModelAdmin):
     list_display = [
         'id', 
-        admin.display(lambda x: x.senser.mobile_id, description='嗅探器ID'),
-        admin.display(lambda x: x.senser.mobile_mac, description='嗅探器MAC'),
+        admin.display(lambda x: x.sensor.mobile_id, description='嗅探器ID'),
+        admin.display(lambda x: x.sensor.mobile_mac, description='嗅探器MAC'),
         'mac', 'rssi', 'range',
-        admin.display(lambda x: x.senser.time, description='发送时间'),
+        admin.display(lambda x: x.sensor.time, description='发送时间'),
     ]
-    list_filter = ['senser__mobile_id', 'mac']
+    list_filter = ['sensor__mobile_id', 'mac']

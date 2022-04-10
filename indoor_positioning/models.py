@@ -91,7 +91,7 @@ class SensedDevice(models.Model):
         verbose_name_plural = verbose_name
 
     id = models.BigAutoField(primary_key=True)
-    senser: WifiData = models.ForeignKey(
+    sensor: WifiData = models.ForeignKey(
         WifiData, on_delete=models.CASCADE,
         related_name='datas',
         verbose_name='嗅探器信息',
@@ -113,7 +113,7 @@ class SensedRouter(SensedDevice):
         verbose_name_plural = verbose_name
 
     device_name: str = models.CharField('路由器名称', max_length=50)
-    is_senser: bool = models.BooleanField('嗅探器', default=False)
+    is_sensor: bool = models.BooleanField('嗅探器', default=False)
     # Omits other information (e.g. tmc) for simplicity.
     # connected_mac: str = None
 
