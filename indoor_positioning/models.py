@@ -1,5 +1,6 @@
 from django.db import models
 import json
+from datetime import datetime
 
 __all__ = [
     'Data',
@@ -69,7 +70,11 @@ class WifiData(Data):
             latitude=['lat', float],
             longitude=['lon', float],
         )
-        return super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
+        if kwargs.get('force_insert', False):
+            try: self.time = datetime.strptime(self.raw_data['time'], '%c')
+            except: pass
+            super().save(update_fields=['time'])
 
 
 class SensedDevice(models.Model):

@@ -1,6 +1,7 @@
 import json
 import string
 import random
+from datetime import datetime
 
 # 为使IDE正常检测unittest，需要激活django环境
 # 只依靠python manage.py test运行时则不需要以下三行
@@ -13,6 +14,32 @@ from indoor_positioning.models import WifiData, Data
 
 # Create your tests here.
 class ReceiveTestCase(TestCase):
+    def setUp(self) -> None:
+        self.device_id = "00f00000"
+        self.mac = "00:ff:00:00:00:ff"
+        self.sense_datas = (
+            self.create_sense_datas()
+            + self.create_router_datas()
+        )
+        self.send_time = datetime.strptime(datetime.now().strftime('%c'), '%c')
+        self.raw_data = {
+            "id": self.device_id,
+            "mmac": self.mac,
+            "rate": "5",
+            "time": self.send_time.strftime('%c'),
+            "lat": "",
+            "lon": "",
+            "data": self.sense_datas,
+        }
+        self.json_data = json.dumps(self.raw_data)
+        self.response = Client().post('', {'data': self.json_data})
+        self.insert_datas: WifiData = WifiData.objects.filter(
+            mobile_id=self.device_id,
+            mobile_mac=self.mac,
+        )
+        self.insert_data = self.insert_datas.first()
+        return super().setUp()
+
     def rand_mac(self):
         return ':'.join(
             ''.join(random.choices(string.hexdigits[:16], k=2))
@@ -56,20 +83,13 @@ class ReceiveTestCase(TestCase):
         raise NotImplementedError
 
     def test_receive(self):
-        c = Client()
-        data = json.dumps({
-            "id": "00f40444",
-            "mmac": "14:6b:9c:f4:04:44",
-            "rate": "5",
-            "time": "Sat Apr 9 18:20:08 2022",
-            "lat": "",
-            "lon": "",
-            "data": (
-                self.create_sense_datas()
-                + self.create_router_datas()
-            ),
-        })
-        response = c.post('', {'data': data})
-        self.assertEqual(response.status_code, 200)
-        insert_data: WifiData = WifiData.objects.first()
-        self.assertEqual(insert_data.json_data, data)
+        self.assertEqual(self.response.status_code, 200)
+
+    def test_insert(self):
+        self.assertIsNotNone(self.insert_data)
+
+    def test_json_data(self):
+        self.assertEqual(self.insert_data.json_data, self.json_data)
+
+    def test_send_time(self):
+        self.assertEqual(self.insert_data.time, self.send_time)
