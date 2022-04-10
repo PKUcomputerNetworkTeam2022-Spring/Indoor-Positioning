@@ -26,3 +26,24 @@ class SensedDeviceAdmin(admin.ModelAdmin):
         admin.display(lambda x: x.sensor.time, description='发送时间'),
     ]
     list_filter = ['sensor__mobile_id', 'mac']
+
+
+@admin.register(SensedRouter)
+class SensedRouterAdmin(admin.ModelAdmin):
+    list_display = (
+        SensedDeviceAdmin.list_display[:2]
+        + ['device_name']
+        + SensedDeviceAdmin.list_display[3:]
+    )
+    list_filter = ['is_sensor', 'device_name'] + SensedDeviceAdmin.list_filter
+
+
+@admin.register(SensedMobile)
+class SensedMobileAdmin(admin.ModelAdmin):
+    list_display = (
+        SensedDeviceAdmin.list_display[:2]
+        + SensedDeviceAdmin.list_display[3:-1]
+        + ['status', 'connected_ssid', 'connected_mac']
+        + SensedDeviceAdmin.list_display[-1:]
+    )
+    list_filter = ['status', 'connected_ssid'] + SensedDeviceAdmin.list_filter
