@@ -25,7 +25,7 @@ class Data(models.Model):
 
     @property
     def raw_data(self) -> dict:
-        return json.loads(self.json_data)
+        return json.loads(self.json_data, strict=False)
 
     @raw_data.setter
     def raw_data(self, val):
