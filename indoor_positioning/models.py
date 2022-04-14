@@ -72,12 +72,13 @@ class WifiData(Data):
             longitude=['lon', float],
         )
         super().save(*args, **kwargs)
-        if kwargs.get('force_insert', False):
-            try:
-                self.time = datetime.strptime(self.raw_data['time'], '%c')
-            except:
-                pass
-            super().save(update_fields=['time'])
+        # 设备时间有误，使用服务器时间统一
+        # if kwargs.get('force_insert', False):
+        #     try:
+        #         self.time = datetime.strptime(self.raw_data['time'], '%c')
+        #     except:
+        #         pass
+        #     super().save(update_fields=['time'])
 
 
 class SensedDevice(models.Model):
