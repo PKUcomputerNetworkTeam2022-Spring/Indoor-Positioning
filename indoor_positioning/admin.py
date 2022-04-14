@@ -6,6 +6,7 @@ from indoor_positioning.models import *
 class DataAdmin(admin.ModelAdmin):
     list_display = ['id', 'time', 'json_data']
     list_filter = ['time']
+    search_fields = ['id']
     date_hierarchy = 'time'
 
 
@@ -13,6 +14,7 @@ class DataAdmin(admin.ModelAdmin):
 class WifiDataAdmin(admin.ModelAdmin):
     list_display = ['id', 'mobile_id', 'mobile_mac', 'send_rate', 'time']
     list_filter = ['mobile_id', 'mobile_mac', 'time']
+    search_fields = ['id', 'mobile_id']
     date_hierarchy = 'time'
 
 
@@ -26,6 +28,7 @@ class SensedDeviceAdmin(admin.ModelAdmin):
         admin.display(lambda x: x.sensor.time, description='发送时间'),
     ]
     list_filter = ['sensor__mobile_id', 'mac']
+    search_fields = ['sensor__mobile_id', 'mac']
 
 
 @admin.register(SensedRouter)
@@ -36,6 +39,7 @@ class SensedRouterAdmin(admin.ModelAdmin):
         + SensedDeviceAdmin.list_display[3:]
     )
     list_filter = ['is_sensor', 'device_name'] + SensedDeviceAdmin.list_filter
+    search_fields = SensedDeviceAdmin.search_fields + ['device_name']
 
 
 @admin.register(SensedMobile)
@@ -47,3 +51,4 @@ class SensedMobileAdmin(admin.ModelAdmin):
         + SensedDeviceAdmin.list_display[-1:]
     )
     list_filter = ['status', 'connected_ssid'] + SensedDeviceAdmin.list_filter
+    search_fields = SensedDeviceAdmin.search_fields + ['connected_ssid']
