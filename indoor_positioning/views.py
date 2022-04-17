@@ -6,6 +6,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
 from indoor_positioning.models import *
+from indoor_positioning.utils import *
 
 
 @csrf_exempt
@@ -50,3 +51,18 @@ def receiveData(request: HttpRequest):
     # 简单展示最后一条数据
     data = WifiData.objects.first()
     return render(request, 'receive.html', locals())
+
+
+def showPosition(request: HttpRequest):
+    if not request.GET.get('mobile_mac'):
+        mobile_macs = SensedMobile.objects.order_by(
+            'mac').values_list('mac', flat=True).distinct()
+        return render(request, 'show_mobiles.html', {'mobiles': mobile_macs})
+
+    mobile_mac = request.GET['mobile_mac']
+    sensors = get_sensors()
+    # 如果呈现多个时间点的坐标，修改max_count
+    sense_datas = fetch_sense_datas(mobile_mac, sensors, max_count=1)
+    distances_across_time = get_distances(sensors, sense_datas)
+    positions = get_positions(distances_across_time, sensors)
+    return render(request, 'show_position.html', locals())

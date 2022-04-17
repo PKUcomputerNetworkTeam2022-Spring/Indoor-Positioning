@@ -20,4 +20,5 @@ from indoor_positioning import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.receiveData),
+    path('showPosition', views.showPosition),
 ]
