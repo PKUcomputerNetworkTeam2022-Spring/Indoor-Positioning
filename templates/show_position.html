@@ -1,1 +1,9 @@
 {{ positions }}
+{% comment %}
+{% for k, v in sensors.items %}
+{id: "{{k}}", East-West: {{v.x}}, North-South: {{v.y}}},
+{% endfor %}
+{% for x, y in positions %}
+{id: "{{x}}, {{y}}", East-West: {{x}}, North-South: {{y}}},
+{% endfor %}
+{% endcomment %}
