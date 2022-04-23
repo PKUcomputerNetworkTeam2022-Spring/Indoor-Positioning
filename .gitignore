@@ -56,6 +56,9 @@ migrations/
 __pycache__/
 *.py[cod]
 
-# OPS Files *
+# OPS Files #
 *.ini
 *.sh
+
+# Data #
+*.json
