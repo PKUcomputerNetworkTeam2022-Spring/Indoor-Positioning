@@ -10,12 +10,14 @@
     var width = 400;
     var height = 400;
     var data = [
-    {% for s, d in distances.0 %}
-    {% for k, v in sensors.items %}
-    {% if k == s %}
-    [{{v.x}}, {{v.y}}, {{d}}, "blue", 0.1, "2px solid red"],
-    {% endif %}
-    {% endfor %}
+    {% for distances in distances_across_time %}
+        {% for s, d in distances %}
+            {% for k, v in sensors.items %}
+            {% if k == s %}
+            [{{v.x}}, {{v.y}}, {{d}}, "blue", 0.075, "2px solid red"],
+            {% endif %}
+            {% endfor %}
+        {% endfor %}
     {% endfor %}
 
     {% for k, v in sensors.items %}
