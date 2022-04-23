@@ -26,11 +26,15 @@ def get_sensors(option: str='json') -> Sensors:
             id=sensor_id,
         ) for sensor_id in sensor_ids}
     # 填补位置信息
-    positions = [[10.0, 10.0], [0.0, 10.0], [10.0, 0.0]]
+    positions = [[0.0, 0.0], [0.0, 10.2], [6.47, 10.2]]
     # 暂用别组的参数
-    A = 51.345
-    N = 2.001
-    for sensor, position in zip(sensors.values(), positions):
+    # A = 51.345
+    # N = 2.001
+    # A = 54.44
+    # N = 1.98
+    As = [54.44, 62.78, 51.15]
+    Ns = [1.98, 0.93, 2.69]
+    for sensor, position, A, N in zip(sensors.values(), positions, As, Ns):
         sensor.update(
             A=A,
             N=N,
@@ -48,10 +52,10 @@ def cal_A_and_N(rssis: List[float]=None) -> Tuple[float, float]:
     '''
     import numpy as np
     from sklearn.linear_model import LinearRegression
-    distances = [1.0, 2.0, 3.0, 4.0, 5.0]
+    distances = [2.4, 3.6, 4.8, 6.0, 7.2]
     if rssis == None:
-        tA = 51.345
-        tN = 2.001
+        tA = 54.44
+        tN = 1.98
         rssis = [(-10 * tN * np.log10(dis) - tA) for dis in distances]
     dataX = np.log10(distances)
     dataY = rssis
@@ -190,6 +194,8 @@ def calculate_position(distances: Distances,
     if not found:
         point[0] /= 3
         point[1] /= 3
+
+    print(point)
 
     return point
 
