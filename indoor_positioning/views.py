@@ -65,4 +65,4 @@ def showPosition(request: HttpRequest):
     sense_datas = fetch_sense_datas(mobile_mac, sensors, max_count=1)
     distances_across_time = get_distances(sensors, sense_datas)
     positions = get_positions(distances_across_time, sensors)
-    return render(request, 'show_position.html', locals())
+    return render(request, 'index.html', locals())
