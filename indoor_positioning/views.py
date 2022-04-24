@@ -67,3 +67,8 @@ def showPosition(request: HttpRequest):
     positions = get_positions(distances_across_time, sensors)
     positions.append((4.4, 4.8))
     return render(request, 'show_position.html', locals())
+
+
+def vue_test(request):
+    return render(request, 'vue.html')
+    
