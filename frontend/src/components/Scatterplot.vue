@@ -18,15 +18,18 @@ export default {
   computed: {
     vegaSpec() {
       return {
-        data: { values: this.data },
+        data: { values: this.data.concat([
+          {"West-East": 0.0, "North-South": 0.0, "id": "f4041c"},
+          {"West-East": 0.0, "North-South": 10.2, "id": "f40443"},
+          {"West-East": 6.47, "North-South": 10.2, "id": "40444"}]) },
         selection: { 
           brush: { type: "interval" },
           multi: { type: "multi" }
         },
         mark: 'point',
         encoding: {
-          x: { field: this.encoding.x, type: 'quantitative', scale: { domain: [0, 10] } },
-          y: { field: this.encoding.y, type: 'quantitative', scale: { domain: [0, 10] } },
+          x: { field: this.encoding.x, type: 'quantitative', scale: { domain: [0, 7] } },
+          y: { field: this.encoding.y, type: 'quantitative', scale: { domain: [0, 11] } },
           color: {
             condition: {
               selection: "brush",

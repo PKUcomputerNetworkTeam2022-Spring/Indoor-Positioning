@@ -18,8 +18,6 @@ export default {
   width: 600px;
   height: 520px;
   padding: 0;
-
-  overflow: scroll;
 }
 
 .center {
