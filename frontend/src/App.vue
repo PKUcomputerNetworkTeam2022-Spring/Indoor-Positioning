@@ -62,6 +62,8 @@
                     <v-circle :config="f40444"></v-circle>
                     <v-star :config="real_pos"></v-star>
                     <v-regular-polygon :config="pos"></v-regular-polygon>
+                    <v-text :config="real_pos_coordinate"></v-text>
+                    <v-text :config="pos_coordinate"></v-text>
                   </v-layer>
                 </v-stage>
               </div>
@@ -93,7 +95,7 @@ export default {
       configKonva: {
         width: 500,
         height: 520,
-        opacity: 0.5
+        opacity: 0.8
       },
       f4041c: {
         x: 100,
@@ -137,6 +139,22 @@ export default {
         fill: 'blue',
         stroke: 'black',
         strokeWidth: 1,
+      },
+      real_pos_coordinate: {
+        x: 130,
+        y: 130,
+        text: "Real Pos: (1.25, 1.25)",
+        fontsize: 18,
+        fontFamily: "Calibri",
+        fill: "black",
+      },
+      pos_coordinate: {
+        x: 105,
+        y: 155,
+        text: "Estimated Pos: (1.00, 1.50)",
+        fontsize: 18,
+        fontFamily: "Calibri",
+        fill: "black",
       }
     }
   },
