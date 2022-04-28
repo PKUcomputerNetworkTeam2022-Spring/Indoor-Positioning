@@ -2,6 +2,7 @@ from indoor_positioning.models import *
 from django.db.models import QuerySet
 from typing import List, TypedDict, Tuple, Dict, Optional, Union
 import math
+import numpy as np
 
 __all__ = [
     'get_sensors',
@@ -85,6 +86,35 @@ def fetch_sense_datas(mobile_mac: str, sensors: Sensors,
         ))
     return sense_datas
 
+def average_distance(distances_across_time:List[Distances]) -> List[Distances]:
+    '''
+    平均多个时刻的Distances为一个时刻的Distances
+    '''
+    # 保证多于2个时刻（后续会删除最大最小值）
+    if len(distances_across_time) <= 2:
+        return distances_across_time
+    distance_zip = zip(*[i for i in distances_across_time])
+    distance_average = []
+    for distance_  in distance_zip:
+        tmp = [distance[1] for distance in distance_] # List[float]
+        tmp.remove(max(tmp))
+        tmp.remove(min(tmp))
+        tmp_average = sum(tmp) / len(tmp)
+        distance_average.append ([(distance_[0][0],tmp_average)])
+    return distance_average
+    
+def average_position(points:List[Point]) -> List[Point]:
+    '''
+    平均多个时刻的Point为一个时刻的Point
+    '''
+    x = 0
+    y = 0
+    length = len(points)
+    for p in points:
+        x += p[0]
+        y += p[1]
+    return [(x/length,y/length)]
+    
 
 def calculate_distance(sense_data: SensedMobile, sensor: SensorData,
                        option: str='rssi-mixed', **configs) -> float:
@@ -96,10 +126,12 @@ def calculate_distance(sense_data: SensedMobile, sensor: SensorData,
 
 def get_distances(sensors: Sensors,
                   sense_datas: List[Tuple[str, SenseData]]=None,
+                  average: bool = True,
                   **cal_kws) -> List[Distances]:
     '''
     计算每个时刻，目标点与每个嗅探器的距离。
 
+    average表示是否在计算距离时平均，默认进行平均
     cal_kws被传递给calculate_distance
     当sense_datas为空时，使用sensors中的数据
     '''
@@ -118,6 +150,8 @@ def get_distances(sensors: Sensors,
             distance = calculate_distance(sense_data, sensor, **cal_kws)
             distances.append((sensor['id'], distance))
         distances_across_time.append(distances)
+    if average:
+        return average_distance(distances_across_time)
     return distances_across_time
 
 
@@ -218,7 +252,17 @@ def cal_position_LSM(distances: Distances,
     return [X[0],X[1]]
 
 def get_positions(distances_across_time: List[Distances],
-                  sensors: Sensors) -> List[Point]:
-    '''计算每个时刻，根据距离计算出的坐标'''
-    return [calculate_position(distances, sensors)
-            for distances in distances_across_time]
+                  sensors: Sensors,
+                  average: bool = False,
+                  way:str ='LSM') -> List[Point]:
+    '''计算每个时刻，根据距离计算出的坐标
+    average表示是否在计算坐标时进行平均，默认不进行平均
+    way表示用什么方法计算坐标点，'LSM'表示用最小二乘法计算，否则用之前的算法，默认用最小二乘法
+    '''
+    if way == 'LSM':
+        positions = [cal_position_LSM(distances, sensors) for distances in distances_across_time]
+    else:
+        positions = [calculate_position(distances, sensors) for distances in distances_across_time]
+    if average:
+        return average_position(positions)
+    return positions
