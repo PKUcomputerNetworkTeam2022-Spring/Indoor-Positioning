@@ -22,4 +22,5 @@ urlpatterns = [
     path('', views.receiveData),
     path('showPosition', views.showPosition),
     path('vue-test', views.vue_test),
+    path('api', views.api),
 ]
