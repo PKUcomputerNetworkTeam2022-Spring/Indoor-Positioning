@@ -1,5 +1,6 @@
 import json
 import re
+import pdb
 
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -74,14 +75,17 @@ def vue_test(request):
     
 @csrf_exempt
 def api(request: HttpRequest):
-    mobile_mac: str = request.POST.get('mac', '')
+    # pdb.set_trace()
+    mobile_mac: str = json.loads(request.body).get('mac', '')
+    print(request.POST)
+    print(request.body)
+    print(mobile_mac)
     sensors = get_sensors()
     # 如果呈现多个时间点的坐标，修改max_count
     sense_datas = fetch_sense_datas(mobile_mac, sensors, max_count=1)
     distances_across_time = get_distances(sensors, sense_datas)
     positions = get_positions(distances_across_time, sensors)
     return JsonResponse(dict(
-        sensors=sensors,
-        distances=distances_across_time[0],
-        position=positions[0],
+        distances=distances_across_time,
+        position=positions,
     ))

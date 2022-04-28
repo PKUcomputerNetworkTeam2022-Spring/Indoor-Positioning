@@ -21,7 +21,7 @@ export default {
         data: { values: this.data.concat([
           {"West-East": 0.0, "North-South": 0.0, "id": "f4041c"},
           {"West-East": 0.0, "North-South": 10.2, "id": "f40443"},
-          {"West-East": 6.47, "North-South": 10.2, "id": "40444"}]) },
+          {"West-East": 6.47, "North-South": 10.2, "id": "40444"}])},
         selection: { 
           brush: { type: "interval" },
           multi: { type: "multi" }

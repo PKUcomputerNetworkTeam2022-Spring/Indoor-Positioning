@@ -29,6 +29,7 @@
                   <b-form-input
                     id="inline-form-input-name"
                     class="mb-2 mr-sm-2 mb-sm-0"
+                    v-model="form.mac"
                     placeholder="Please enter the correct MAC."
                   ></b-form-input>
                   <b-button variant="primary" @click="onPosition">Save</b-button>
@@ -56,7 +57,7 @@
               <div>
                 <Scatterplot 
                   id="comp1" 
-                  :data='[]'
+                  :data='trace_points'
                   :selection="[]" 
                   :encoding="{ x: 'West-East', y: 'North-South' }"
                   @brush="onBrush" 
@@ -114,7 +115,7 @@ export default {
   data () {
     return {
       form: {
-
+        "mac": "",
       },
       selection: [],
       trace_points: [],
@@ -218,34 +219,19 @@ export default {
     onPosition() {
       this.real_pos["x"] = 50;
       this.real_pos["y"] = 50;
-      this.pos["x"] = 60;
-      this.pos["y"] = 60;
-      this.f4041c["radius"] = 50;
-      this.f40443["radius"] = 70;
-      this.f40444["radius"] = 80;
-      const path = "http://localhost:8000";
-      axios.post(path, JSON.stringify(loginInfo)).then(function (response) {
+      const path = "http://localhost:8000/api";
+      let that = this;
+      axios.post(path, {"mac": this.form["mac"]}).then(function (response) {
         console.log("i accept");
-        var login_result = response.data;
-        is_login_success = login_result["result"];
-        if (is_login_success == "success") {
-          //alert("登陆成功");
-          var mymes=confirm("登陆成功");
-          if(mymes==true){
-            that.$router.push({ path: "/", query: { from: "login" } });
-          }
-          GLOBAL.currentUser_ID = login_result["id"];
-          GLOBAL.currentUser_name = login_result["user_name"];
-          GLOBAL.isLogined = true;
-          GLOBAL.view = "myCenter";
-          GLOBAL.isLogined = true;
-        } else if (is_login_success === "failed") {
-          alert("登陆失败");
-          this.name = "";
-          this.password = "";
-        } else {
-          alert("传参失败");
-        }
+        console.log(response.data);
+        var pos = response.data["position"][0];
+        var dist = response.data["distances"][0];
+        that.pos["x"] = 30 * pos[0] + 100;
+        that.pos["y"] = 450 - 30 * pos[1];
+        that.f4041c["radius"] = 30 * dist[0][1];
+        that.f40443["radius"] = 30 * dist[1][1];
+        that.f40444["radius"] = 30 * dist[2][1];
+        that.trace_points.push({"West-East": pos[0], "North-South": pos[1], "id": "point"});
       });
     }
   },
