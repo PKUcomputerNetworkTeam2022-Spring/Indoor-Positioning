@@ -1,7 +1,7 @@
 import json
 import re
 
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
@@ -66,3 +66,18 @@ def showPosition(request: HttpRequest):
     distances_across_time = get_distances(sensors, sense_datas)
     positions = get_positions(distances_across_time, sensors)
     return render(request, 'show_position.html', locals())
+
+
+@csrf_exempt
+def api(request: HttpRequest):
+    mobile_mac: str = request.POST.get('mac', '')
+    sensors = get_sensors()
+    # 如果呈现多个时间点的坐标，修改max_count
+    sense_datas = fetch_sense_datas(mobile_mac, sensors, max_count=1)
+    distances_across_time = get_distances(sensors, sense_datas)
+    positions = get_positions(distances_across_time, sensors)
+    return JsonResponse(dict(
+        sensors=sensors,
+        distances=distances_across_time[0],
+        position=positions[0],
+    ))
