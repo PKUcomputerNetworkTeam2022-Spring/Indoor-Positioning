@@ -66,6 +66,7 @@ data.json
 # Frontend $
 *node_modules
 /dist
+*.hot-update.json
 
 # local env files
 .env.local
