@@ -19,8 +19,8 @@ from indoor_positioning import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.receiveData),
+    path('receiveData', views.receiveData),
     path('showPosition', views.showPosition),
-    path('vue-test', views.vue_test),
+    path('', views.vue_frontend),
     path('api', views.api),
 ]

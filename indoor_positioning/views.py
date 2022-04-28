@@ -1,8 +1,6 @@
 import json
-import re
-import pdb
 
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import HttpRequest, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
@@ -13,7 +11,8 @@ from indoor_positioning.utils import *
 @csrf_exempt
 def receiveData(request: HttpRequest):
     if request.method == 'POST' and request.POST.get('data') is not None:
-        wifi_data: WifiData = WifiData.objects.create(json_data=request.POST['data'])
+        wifi_data: WifiData = WifiData.objects.create(
+            json_data=request.POST['data'])
         for sensed_data in wifi_data.data:
             basic_infos = dict(
                 sensor=wifi_data,
@@ -70,16 +69,13 @@ def showPosition(request: HttpRequest):
     return render(request, 'show_position.html', locals())
 
 
-def vue_test(request):
+def vue_frontend(request):
     return render(request, 'vue.html')
-    
+
+
 @csrf_exempt
 def api(request: HttpRequest):
-    # pdb.set_trace()
     mobile_mac: str = json.loads(request.body).get('mac', '')
-    print(request.POST)
-    print(request.body)
-    print(mobile_mac)
     sensors = get_sensors()
     # 如果呈现多个时间点的坐标，修改max_count
     sense_datas = fetch_sense_datas(mobile_mac, sensors, max_count=1)

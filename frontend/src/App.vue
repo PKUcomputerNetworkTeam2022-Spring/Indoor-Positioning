@@ -17,22 +17,28 @@
 
         <b-collapse id="nav-collapse" is-nav>
           <b-navbar-nav>
-            <b-nav-item href="#">Admin</b-nav-item>
+            <b-nav-item href="http://localhost:8000/admin">Admin</b-nav-item>
             
             <!-- Positioning Button -->
             <b-nav-item href="#" v-b-modal.modal-1>Positioning
-              <b-modal id="modal-1" title="Get Position">
+              <b-modal v-modal="show_modal" id="modal-1" title="Get Position">
                 <template #modal-header="{ close }">
-                  <h5>MAC of the target device</h5>
+                  <h5>Do Positioning</h5>
                 </template>
                 <b-form inline>
-                  <b-form-input
-                    id="inline-form-input-name"
-                    class="mb-2 mr-sm-2 mb-sm-0"
-                    v-model="form.mac"
-                    placeholder="Please enter the correct MAC."
-                  ></b-form-input>
-                  <b-button variant="primary" @click="onPosition">Save</b-button>
+                  <b-row>
+                    <b-col cols="8">
+                      <b-form-input
+                        id="inline-form-input-name"
+                        class="mb-2 mr-sm-2 mb-sm-0"
+                        v-model="form.mac"
+                        placeholder="MAC of the target device."
+                      ></b-form-input>
+                    </b-col>
+                    <b-col>
+                      <b-button variant="success" @click="onPosition">Get Position!</b-button>
+                    </b-col>
+                  </b-row>
                 </b-form>
 
               </b-modal>
@@ -54,14 +60,8 @@
               style="max-width: 80rem;"
               class="mb-2"
             >
-              <div>
-                <Scatterplot 
-                  id="comp1" 
-                  :data='trace_points'
-                  :selection="[]" 
-                  :encoding="{ x: 'West-East', y: 'North-South' }"
-                  @brush="onBrush" 
-                />
+              <div class='dashboard'>
+                <vega-lite :data="trace_points" :mark="{'type': 'point'}" :encoding="encoding" :width="450" :height="470"/>
               </div>
             </b-card>
           </div>
@@ -100,7 +100,6 @@
 </template>
 
 <script>
-import Scatterplot from './components/Scatterplot'
 import _ from 'lodash'
 
 export default {
@@ -118,7 +117,28 @@ export default {
         "mac": "",
       },
       selection: [],
-      trace_points: [],
+      // For Trace Display.
+      trace_points: [
+        {"West-East": 0.0, "North-South": 0.0, "Type": "sniffing-device"},    // f4041c
+        {"West-East": 0.0, "North-South": 10.2, "Type": "sniffing-device"},   // f40443
+        {"West-East": 6.47, "North-South": 10.2, "Type": "sniffing-device"},  // f40444
+      ],
+      encoding: {
+        x: {field: 'West-East', type: 'quantitative', scale: { domain: [0, 7] } },
+        y: {field: 'North-South', type: 'quantitative', scale: { domain: [0, 11] } },
+        color: {
+          field: "Type",
+          type: "ordinal",
+          "scale": {
+            "range": [
+              "#FA3B12",
+              "#123BFA",
+            ]
+          }
+        },
+        shape: {field: "Type", type: "ordinal"},
+      },
+      // For Positioning Detail. 
       configKonva: {
         width: 500,
         height: 520,
@@ -210,18 +230,16 @@ export default {
     }
   },
   methods: {
-    onBrush(selectedPts) {
-      const newPts = _.differenceBy(selectedPts, this.selection, 'id')
-      if (newPts.length > 0) {
-        this.selection = selectedPts
-      }
-    },
     onPosition() {
-      this.real_pos["x"] = 50;
-      this.real_pos["y"] = 50;
+      // Shows one positioning result on the UI.
       const path = "http://localhost:8000/api";
       let that = this;
-      axios.post(path, {"mac": this.form["mac"]}).then(function (response) {
+      axios.post(path, {
+        "mac": this.form["mac"]
+        },
+        {
+          headers: {"Access-Control-Allow-Origin": "*"}
+        }).then(function (response) {
         console.log("i accept");
         console.log(response.data);
         var pos = response.data["position"][0];
@@ -231,13 +249,10 @@ export default {
         that.f4041c["radius"] = 30 * dist[0][1];
         that.f40443["radius"] = 30 * dist[1][1];
         that.f40444["radius"] = 30 * dist[2][1];
-        that.trace_points.push({"West-East": pos[0], "North-South": pos[1], "id": "point"});
+        that.trace_points.push({"West-East": pos[0], "North-South": pos[1], "Type": "point"});
       });
     }
   },
-  components: {
-    Scatterplot
-  }
 }
 </script>
 
