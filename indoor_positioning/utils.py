@@ -26,11 +26,15 @@ def get_sensors(option: str='json') -> Sensors:
             id=sensor_id,
         ) for sensor_id in sensor_ids}
     # 填补位置信息
-    positions = [[10.0, 10.0], [0.0, 10.0], [10.0, 0.0]]
+    positions = [[0.0, 0.0], [0.0, 10.2], [6.47, 10.2]]
     # 暂用别组的参数
-    A = 51.345
-    N = 2.001
-    for sensor, position in zip(sensors.values(), positions):
+    # A = 51.345
+    # N = 2.001
+    # A = 54.44
+    # N = 1.98
+    As = [54.44, 62.78, 51.15]
+    Ns = [1.98, 0.93, 2.69]
+    for sensor, position, A, N in zip(sensors.values(), positions, As, Ns):
         sensor.update(
             A=A,
             N=N,
