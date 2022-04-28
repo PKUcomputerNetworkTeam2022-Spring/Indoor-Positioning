@@ -21,4 +21,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.receiveData),
     path('showPosition', views.showPosition),
+    path('api', views.api),
 ]
