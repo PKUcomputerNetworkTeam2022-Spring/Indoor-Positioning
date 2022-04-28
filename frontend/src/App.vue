@@ -12,12 +12,31 @@
         <div class="container">
           <b-navbar-brand href="#">Indoor Positioning</b-navbar-brand>
         </div>
+
         <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
         <b-collapse id="nav-collapse" is-nav>
           <b-navbar-nav>
             <b-nav-item href="#">Admin</b-nav-item>
-            <b-nav-item href="#">Positioning</b-nav-item>
+            
+            <!-- Positioning Button -->
+            <b-nav-item href="#" v-b-modal.modal-1>Positioning
+              <b-modal id="modal-1" title="Get Position">
+                <template #modal-header="{ close }">
+                  <h5>MAC of the target device</h5>
+                </template>
+                <b-form inline>
+                  <b-form-input
+                    id="inline-form-input-name"
+                    class="mb-2 mr-sm-2 mb-sm-0"
+                    placeholder="Please type the correct MAC."
+                  ></b-form-input>
+                  <b-button variant="primary">Save</b-button>
+                </b-form>
+
+              </b-modal>
+            </b-nav-item>
+          
           </b-navbar-nav>
 
         </b-collapse>
@@ -60,6 +79,9 @@
                     <v-circle :config="f4041c"></v-circle>
                     <v-circle :config="f40443"></v-circle>
                     <v-circle :config="f40444"></v-circle>
+                    <v-circle :config="f4041c_center"></v-circle>
+                    <v-circle :config="f40443_center"></v-circle>
+                    <v-circle :config="f40444_center"></v-circle>
                     <v-star :config="real_pos"></v-star>
                     <v-regular-polygon :config="pos"></v-regular-polygon>
                     <v-text :config="real_pos_coordinate"></v-text>
@@ -92,38 +114,63 @@ export default {
   data () {
     return {
       selection: [],
+      trace_points: [],
       configKonva: {
         width: 500,
         height: 520,
         opacity: 0.8
       },
       f4041c: {
-        x: 100,
-        y: 100,
-        radius: 70,
+        x: 30*0+100,
+        y: 450-30*0,
+        radius: 1,
         fill: "green",
         stroke: "black",
         strokeWidth: 2
       },
+      f4041c_center: {
+        x: 30*0+100,
+        y: 450-30*0,
+        radius: 2,
+        fill: "black",
+        stroke: "black",
+        strokeWidth: 2
+      },
       f40443: {
-        x: 150,
-        y: 150,
-        radius: 70,
+        x: 30*0+100,
+        y: 450-30*10.2,
+        radius: 1,
         fill: "yellow",
         stroke: "black",
         strokeWidth: 2
       },
+      f40443_center: {
+        x: 30*0+100,
+        y: 450-30*10.2,
+        radius: 2,
+        fill: "black",
+        stroke: "black",
+        strokeWidth: 2
+      },
       f40444: {
-        x: 200,
-        y: 200,
-        radius: 70,
+        x: 30*6.4+100,
+        y: 450-30*10.2,
+        radius: 1,
         fill: "orange",
         stroke: "black",
         strokeWidth: 2
       },
+      f40444_center: {
+        x: 30*6.4+100,
+        y: 450-30*10.2,
+        radius: 2,
+        fill: "black",
+        stroke: "black",
+        strokeWidth: 2
+      },
       real_pos: {
-        x: 125,
-        y: 125,
+        x: -100,
+        y: -100,
         numPoints: 6,
         innerRadius: 3,
         outerRadius: 5,
@@ -132,8 +179,8 @@ export default {
         strokeWidth: 1,
       },
       pos: {
-        x: 100,
-        y: 150,
+        x: -100,
+        y: -100,
         sides: 6,
         radius: 5,
         fill: 'blue',
@@ -141,16 +188,16 @@ export default {
         strokeWidth: 1,
       },
       real_pos_coordinate: {
-        x: 130,
-        y: 130,
+        x: -100,
+        y: -100,
         text: "Real Pos: (1.25, 1.25)",
         fontsize: 18,
         fontFamily: "Calibri",
         fill: "black",
       },
       pos_coordinate: {
-        x: 105,
-        y: 155,
+        x: -100,
+        y: -100,
         text: "Estimated Pos: (1.00, 1.50)",
         fontsize: 18,
         fontFamily: "Calibri",
@@ -164,6 +211,10 @@ export default {
       if (newPts.length > 0) {
         this.selection = selectedPts
       }
+    },
+    onPosition() {
+      this.real_pos["x"] = 50;
+      this.real_pos["y"] = 50;
     }
   },
   components: {
