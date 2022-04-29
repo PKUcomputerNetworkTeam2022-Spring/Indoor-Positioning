@@ -26,11 +26,10 @@ def get_sensors(option: str='json') -> Sensors:
             id=sensor_id,
         ) for sensor_id in sensor_ids}
     # 填补位置信息
-    positions = [[10.0, 10.0], [0.0, 10.0], [10.0, 0.0]]
-    # 暂用别组的参数
-    A = 51.345
-    N = 2.001
-    for sensor, position in zip(sensors.values(), positions):
+    positions = [[0.0, 0.0], [0.0, 10.2], [6.47, 10.2]]
+    As = [54.44, 62.78, 51.15]
+    Ns = [1.98, 0.93, 2.69]
+    for sensor, position, A, N in zip(sensors.values(), positions, As, Ns):
         sensor.update(
             A=A,
             N=N,
@@ -40,7 +39,7 @@ def get_sensors(option: str='json') -> Sensors:
     return sensors
 
 
-def cal_A_and_N(rssis: List[float]=None) -> Tuple[float, float]:
+def cal_A_and_N(rssis: List[float]) -> Tuple[float, float]:
     '''
     线性回归计算嗅探器的参数A和N
     传入距离为1，2，3，4，5m时的rssi数据
@@ -48,11 +47,7 @@ def cal_A_and_N(rssis: List[float]=None) -> Tuple[float, float]:
     '''
     import numpy as np
     from sklearn.linear_model import LinearRegression
-    distances = [1.0, 2.0, 3.0, 4.0, 5.0]
-    if rssis == None:
-        tA = 51.345
-        tN = 2.001
-        rssis = [(-10 * tN * np.log10(dis) - tA) for dis in distances]
+    distances = [2.4, 3.6, 4.8, 6.0, 7.2]
     dataX = np.log10(distances)
     dataY = rssis
     model = LinearRegression()
