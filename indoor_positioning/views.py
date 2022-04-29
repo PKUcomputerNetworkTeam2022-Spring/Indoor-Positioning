@@ -60,9 +60,14 @@ def showPosition(request: HttpRequest):
         return render(request, 'show_mobiles.html', {'mobiles': mobile_macs})
 
     mobile_mac = request.GET['mobile_mac']
+    try:
+        max_count = int(request.GET['n'])
+    except:
+        max_count = 1
+
     sensors = get_sensors()
     # 如果呈现多个时间点的坐标，修改max_count
-    sense_datas = fetch_sense_datas(mobile_mac, sensors, max_count=3)
+    sense_datas = fetch_sense_datas(mobile_mac, sensors, max_count=max_count)
     distances_across_time = get_distances(sensors, sense_datas)
     positions = get_positions(distances_across_time, sensors)
     return render(request, 'show_position.html', locals())
@@ -71,15 +76,22 @@ def showPosition(request: HttpRequest):
 @csrf_exempt
 def api(request: HttpRequest):
     try:
-        mobile_mac: str = json.loads(request.body)['mac']
+        post_data: dict = json.loads(request.body)
+        mobile_mac: str = post_data['mac']
     except:
         return JsonResponse(dict(distances=[], position=[]), status=403)
+    try:
+        max_count = int(post_data['n'])
+    except:
+        max_count = 1
     sensors = get_sensors()
     # 如果呈现多个时间点的坐标，修改max_count
-    sense_datas = fetch_sense_datas(mobile_mac, sensors, max_count=1)
+    sense_datas = fetch_sense_datas(mobile_mac, sensors, max_count=max_count)
     distances_across_time = get_distances(sensors, sense_datas)
     positions = get_positions(distances_across_time, sensors)
     return JsonResponse(dict(
+        sensors={sid: dict(id=sid, x=s['x'], y=s['y'])
+                 for sid, s in sensors.items()},
         distances=distances_across_time,
         position=positions,
     ))
