@@ -65,17 +65,15 @@ def showPosition(request: HttpRequest):
     sense_datas = fetch_sense_datas(mobile_mac, sensors, max_count=3)
     distances_across_time = get_distances(sensors, sense_datas)
     positions = get_positions(distances_across_time, sensors)
-    positions.append((4.4, 4.8))
     return render(request, 'show_position.html', locals())
-
-
-def vue_frontend(request):
-    return render(request, 'vue.html')
 
 
 @csrf_exempt
 def api(request: HttpRequest):
-    mobile_mac: str = json.loads(request.body).get('mac', '')
+    try:
+        mobile_mac: str = json.loads(request.body)['mac']
+    except:
+        return JsonResponse(dict(distances=[], position=[]), status=403)
     sensors = get_sensors()
     # 如果呈现多个时间点的坐标，修改max_count
     sense_datas = fetch_sense_datas(mobile_mac, sensors, max_count=1)

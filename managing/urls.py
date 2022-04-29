@@ -15,12 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, re_path, include
+from django.views.generic.base import TemplateView
 from indoor_positioning import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('receiveData', views.receiveData),
     path('showPosition', views.showPosition),
-    path('', views.vue_frontend),
     path('api', views.api),
+    path('', TemplateView.as_view(template_name='vue.html')),
 ]
