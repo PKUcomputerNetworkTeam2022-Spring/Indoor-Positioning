@@ -113,8 +113,28 @@ def get_distances(sensors: Sensors,
         distances_across_time.append(distances)
     return distances_across_time
 
-
 def calculate_position(distances: Distances,
+                       sensors: Sensors) -> Point:
+    '''
+    最小二乘法计算定位点
+    最小化 $\Sigma( (x-x_i)^2 + (y - y_i)^2 - di^2 )$ 即|AX-B|
+    '''
+    import numpy as np
+    dis = []    #dis是测得的距离数组
+    rs = []     #rs是路由器位置（二维数组）
+    for distance in distances:#每个嗅探设备
+        dis.append(distance[1])
+        rs.append([sensors[distance[0]]['x'],sensors[distance[0]]['y']])
+    assert(len(dis) == 3)
+    assert(len(rs) == 3 and len(rs[0]) == 2) 
+    rs = np.array(rs)                
+    A = np.array([2*(rs[1]- rs[0]),2*(rs[2]-rs[1])]) 
+    B = np.array([[pow(dis[0],2) - pow(dis[1],2) - pow(rs[0][0],2) - pow(rs[0][1],2) + pow(rs[1][0],2) + pow(rs[1][1],2)],\
+                  [pow(dis[1],2) - pow(dis[2],2) - pow(rs[1][0],2) - pow(rs[1][1],2) + pow(rs[2][0],2) + pow(rs[2][1],2)]])
+    X = np.dot(np.linalg.inv(np.dot(A.T,A)),np.dot(A.T,B))
+    return [X[0],X[1]]
+
+def cal_position_before(distances: Distances,
                        sensors: Sensors) -> Point:
     '''根据距离和嗅探器位置，计算某一时刻的坐标
     
