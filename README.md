@@ -2,7 +2,7 @@
 
 [中文](README.md) [English](README_EN.md)
 
-<img src="README/intro.png" alt="intro" style="zoom:40%;" />
+<img src="README/intro.png" alt="intro" width="500" />
 
 ### 环境依赖
 
@@ -88,7 +88,9 @@
 
    `npm run serve`
 
-   ![positioning](README/positioning.gif)
+   注：首次运行时还需执行`npm run install`.
+
+   <img src="README/positioning.gif" width="700">
 
 8. 关闭服务
 
