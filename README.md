@@ -1,4 +1,4 @@
-# 无限信号感知与室内定位
+# 无线信号感知与室内定位
 
 [中文](README.md) [English](README_EN.md)
 
@@ -142,24 +142,24 @@
 ```
 ├── manage.py                   Django启动文件
 ├── managing                    配置目录
-│   ├── settings.py					Django配置文件
-│   └── urls.py                 	网络路由配置
+│   ├── settings.py                 Django配置文件
+│   └── urls.py                     网络路由配置
 ├── indoor_positioning          定位（核心）
-│   ├── models.py					数据库模型
-│   ├── views.py                	视图，提供网络服务
-│   ├── utils.py					工具函数，后端算法
-│   ├── admin.py					后台
-│   └── tests.py                	单元测试
+│   ├── models.py                   数据库模型
+│   ├── views.py                    视图，提供网络服务
+│   ├── utils.py                    工具函数，后端算法
+│   ├── admin.py                    后台
+│   └── tests.py                    单元测试
 ├── algorithms/algorithms.ipynb 交互式显示算法效果
-├── templates          			模板目录
-│   ├── receive.html				接收数据页面
+├── templates                   模板目录
+│   ├── receive.html                接收数据页面
 │   ├── show_position.html          基于Django的定位页面，前后端结合
-│   └── vue.html                	基于Vue的定位页面，前后端分离
-├── static          			静态文件目录
-├── frontend          			前端目录
+│   └── vue.html                    基于Vue的定位页面，前后端分离
+├── static                      静态文件目录
+├── frontend                    前端目录
 ├── README.md                   帮助
 ├── README_EN.md                英文帮助
-└── db.sqlite3			        临时数据库，首次运行代码时生成，可改为其他数据库
+└── db.sqlite3                  临时数据库，首次运行代码时生成，可改为其他数据库
 ```
 
 ### 版权信息
