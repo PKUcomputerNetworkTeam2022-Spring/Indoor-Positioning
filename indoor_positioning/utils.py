@@ -113,82 +113,104 @@ def get_distances(sensors: Sensors,
         distances_across_time.append(distances)
     return distances_across_time
 
-
 def calculate_position(distances: Distances,
-                       sensors: Sensors) -> Point:
-    '''根据距离和嗅探器位置，计算某一时刻的坐标
+                       sensors: Sensors, method="LS") -> Point:
+    '''
+    根据距离和嗅探器位置，计算某一时刻的坐标
     
     返回值:point是最终的定位点
-    如果两个圆有交点，验证第三个圆的半径和这个交点到圆心的距离是否相等，后者允许一定误差，若相等，算出近似交点；
-    如果没有近似交点，返回三个模拟交点（每个模拟交点这样计算：相切就是切点，相离按比例取圆心连线上某点，相交取两个交点的中点）的平均。
+    
+    支持两种定位算法：
+        1. 最小二乘法计算定位点（LS)
+            最小化 Sigma( (x-x_i)^2 + (y - y_i)^2 - di^2 ) 即|AX-B|
+        2. 三角形中心法定位点（CM)
+            如果两个圆有交点，验证第三个圆的半径和这个交点到圆心的距离是否相等，后者允许一定误差，若相等，算出近似交点；
+            如果没有近似交点，返回三个模拟交点（每个模拟交点这样计算：相切就是切点，相离按比例取圆心连线上某点，相交取两个交点的中点）的平均。
     '''
-    point = [0, 0]
-    points = []  # 某两个圆的交点-可用于debug
-    dis = []  # dis是测得的距离数组
-    rs = []  # rs是路由器位置（二维数组）
-    for distance in distances:  # 每个嗅探设备
-        dis.append(distance[1])
-        rs.append([sensors[distance[0]]['x'], sensors[distance[0]]['y']])
-    assert (len(dis) == 3)
-    assert (len(rs) == 3 and len(rs[0]) == 2)
-    e = 0.2  # 允许的误差范围
-    found = False  # 是否已经找到近似交点
-    tmpx, tmpy = 0, 0
-    tmpx1, tmpy1 = 0, 0
-    tmpx2, tmpy2 = 0, 0
-    for i in range(3):
-        assert (dis[i] >= 0)
-        if found:
-            break
-        for j in range(i + 1, 3):
-            # 路由器间的距离
-            p2p = math.sqrt((rs[i][0] - rs[j][0]) * (rs[i][0] - rs[j][0]) +
-                            (rs[i][1] - rs[j][1]) * (rs[i][1] - rs[j][1]))
-            if dis[i] + dis[j] >= p2p:  # 两圆有交点
-                dr = p2p / 2 + (dis[i] * dis[i] - dis[j] * dis[j]) / (2 * p2p)
-                ddr = math.sqrt(abs(dis[i] * dis[i] - dr * dr))
-                # 两个交点的中点
-                tmpx = rs[i][0] + (rs[j][0] - rs[i][0]) * dr / p2p
-                tmpy = rs[i][1] + (rs[j][1] - rs[i][1]) * dr / p2p
-                cos = -(rs[j][1] - rs[i][1]) / p2p
-                sin = (rs[j][0] - rs[i][0]) / p2p
-                # 两个or一个交点
-                tmpx1 = tmpx + ddr * cos
-                tmpx2 = tmpx - ddr * cos
-                tmpy1 = tmpy + ddr * sin
-                tmpy2 = tmpy - ddr * sin
-                points.append([tmpx1, tmpy1])
-                points.append([tmpx2, tmpy2])
-            else:  # 两圆不相交 - 按比例模拟的交点
-                tmpx = rs[i][0] + (rs[j][0] - rs[i][0]) * dis[i] / (dis[i] + dis[j])
-                tmpy = rs[i][1] + (rs[j][1] - rs[i][1]) * dis[i] / (dis[i] + dis[j])
+    if method == "LS":
+        import numpy as np
+        dis = []    # dis是测得的距离数组
+        rs = []     # rs是路由器位置（二维数组）
+        for distance in distances:  # 每个嗅探设备
+            dis.append(distance[1])
+            rs.append([sensors[distance[0]]['x'],sensors[distance[0]]['y']])
+        assert(len(dis) == 3)
+        assert(len(rs) == 3 and len(rs[0]) == 2) 
+        rs = np.array(rs)                
+        A = np.array([2*(rs[1]- rs[0]),2*(rs[2]-rs[1])]) 
+        B = np.array([[pow(dis[0],2) - pow(dis[1],2) - pow(rs[0][0],2) - pow(rs[0][1],2) + pow(rs[1][0],2) + pow(rs[1][1],2)],\
+                      [pow(dis[1],2) - pow(dis[2],2) - pow(rs[1][0],2) - pow(rs[1][1],2) + pow(rs[2][0],2) + pow(rs[2][1],2)]])
+        X = np.dot(np.linalg.inv(np.dot(A.T,A)),np.dot(A.T,B))
+        return [X[0],X[1]]
+    elif method == "CM":
+        point = [0, 0]
+        points = []  # 某两个圆的交点-可用于debug
+        dis = []  # dis是测得的距离数组
+        rs = []  # rs是路由器位置（二维数组）
+        for distance in distances:  # 每个嗅探设备
+            dis.append(distance[1])
+            rs.append([sensors[distance[0]]['x'], sensors[distance[0]]['y']])
+        assert (len(dis) == 3)
+        assert (len(rs) == 3 and len(rs[0]) == 2)
+        e = 0.2  # 允许的误差范围
+        found = False  # 是否已经找到近似交点
+        tmpx, tmpy = 0, 0
+        tmpx1, tmpy1 = 0, 0
+        tmpx2, tmpy2 = 0, 0
+        for i in range(3):
+            assert (dis[i] >= 0)
+            if found:
+                break
+            for j in range(i + 1, 3):
+                # 路由器间的距离
+                p2p = math.sqrt((rs[i][0] - rs[j][0]) * (rs[i][0] - rs[j][0]) +
+                                (rs[i][1] - rs[j][1]) * (rs[i][1] - rs[j][1]))
+                if dis[i] + dis[j] >= p2p:  # 两圆有交点
+                    dr = p2p / 2 + (dis[i] * dis[i] - dis[j] * dis[j]) / (2 * p2p)
+                    ddr = math.sqrt(abs(dis[i] * dis[i] - dr * dr))
+                    # 两个交点的中点
+                    tmpx = rs[i][0] + (rs[j][0] - rs[i][0]) * dr / p2p
+                    tmpy = rs[i][1] + (rs[j][1] - rs[i][1]) * dr / p2p
+                    cos = -(rs[j][1] - rs[i][1]) / p2p
+                    sin = (rs[j][0] - rs[i][0]) / p2p
+                    # 两个or一个交点
+                    tmpx1 = tmpx + ddr * cos
+                    tmpx2 = tmpx - ddr * cos
+                    tmpy1 = tmpy + ddr * sin
+                    tmpy2 = tmpy - ddr * sin
+                    points.append([tmpx1, tmpy1])
+                    points.append([tmpx2, tmpy2])
+                else:  # 两圆不相交 - 按比例模拟的交点
+                    tmpx = rs[i][0] + (rs[j][0] - rs[i][0]) * dis[i] / (dis[i] + dis[j])
+                    tmpy = rs[i][1] + (rs[j][1] - rs[i][1]) * dis[i] / (dis[i] + dis[j])
 
-            # 两个圆有交点，看第三个圆的情况
-            if dis[i] + dis[j] >= p2p:
-                k = 3 - i - j
-                dev1 = math.sqrt((tmpx1 - rs[k][0]) * (tmpx1 - rs[k][0]) +
-                                 (tmpy1 - rs[k][1]) * (tmpy1 - rs[k][1]))
-                if dev1 <= dis[k] + e and dev1 >= dis[k] - e:
-                    point[0] = tmpx1 + (rs[k][0] - tmpx1) * (1 / 2 - dis[k] / (2 * dev1))
-                    point[1] = tmpy1 + (rs[k][1] - tmpx1) * (1 / 2 - dis[k] / (2 * dev1))
-                    found = True
-                    break
-                dev2 = math.sqrt((tmpx2 - rs[k][0]) * (tmpx2 - rs[k][0]) +
-                                 (tmpy2 - rs[k][1]) * (tmpy2 - rs[k][1]))
-                if dev2 <= dis[k] + e and dev2 >= dis[k] - e:
-                    point[0] = tmpx2 + (rs[k][0] - tmpx2) * (1 / 2 - dis[k] / (2 * dev2))
-                    point[1] = tmpy2 + (rs[k][1] - tmpx2) * (1 / 2 - dis[k] / (2 * dev2))
-                    found = True
-                    break
-            # 没有近似交点
-            point[0] += tmpx
-            point[1] += tmpy
+                # 两个圆有交点，看第三个圆的情况
+                if dis[i] + dis[j] >= p2p:
+                    k = 3 - i - j
+                    dev1 = math.sqrt((tmpx1 - rs[k][0]) * (tmpx1 - rs[k][0]) +
+                                     (tmpy1 - rs[k][1]) * (tmpy1 - rs[k][1]))
+                    if dev1 <= dis[k] + e and dev1 >= dis[k] - e:
+                        point[0] = tmpx1 + (rs[k][0] - tmpx1) * (1 / 2 - dis[k] / (2 * dev1))
+                        point[1] = tmpy1 + (rs[k][1] - tmpx1) * (1 / 2 - dis[k] / (2 * dev1))
+                        found = True
+                        break
+                    dev2 = math.sqrt((tmpx2 - rs[k][0]) * (tmpx2 - rs[k][0]) +
+                                     (tmpy2 - rs[k][1]) * (tmpy2 - rs[k][1]))
+                    if dev2 <= dis[k] + e and dev2 >= dis[k] - e:
+                        point[0] = tmpx2 + (rs[k][0] - tmpx2) * (1 / 2 - dis[k] / (2 * dev2))
+                        point[1] = tmpy2 + (rs[k][1] - tmpx2) * (1 / 2 - dis[k] / (2 * dev2))
+                        found = True
+                        break
+                # 没有近似交点
+                point[0] += tmpx
+                point[1] += tmpy
 
-    if not found:
-        point[0] /= 3
-        point[1] /= 3
-
-    return point
+        if not found:
+            point[0] /= 3
+            point[1] /= 3
+        return point
+    else:
+        raise NotImplementedError("当前只支持method="LS"/"CM"!)
 
 
 def get_positions(distances_across_time: List[Distances],
