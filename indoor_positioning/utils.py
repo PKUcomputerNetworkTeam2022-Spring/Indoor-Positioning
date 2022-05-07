@@ -210,7 +210,7 @@ def calculate_position(distances: Distances,
             point[1] /= 3
         return point
     else:
-        raise NotImplementedError("当前只支持method="LS"/"CM"!)
+        raise NotImplementedError('当前只支持method="LS"/"CM"!')
 
 
 def get_positions(distances_across_time: List[Distances],
