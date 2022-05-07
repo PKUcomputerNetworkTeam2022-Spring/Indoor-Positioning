@@ -249,6 +249,9 @@ export default {
         that.f4041c["radius"] = 30 * dist[0][1];
         that.f40443["radius"] = 30 * dist[1][1];
         that.f40444["radius"] = 30 * dist[2][1];
+        that.pos_coordinate["x"] = that.pos["x"] + 5;
+        that.pos_coordinate["y"] = that.pos["y"] + 5;
+        that.pos_coordinate["text"] = "Estimated Pos: (".concat(pos[0].toString(), ", ", pos[1].toString(), ")");
         that.trace_points.push({"West-East": pos[0], "North-South": pos[1], "Type": "point"});
       });
     }

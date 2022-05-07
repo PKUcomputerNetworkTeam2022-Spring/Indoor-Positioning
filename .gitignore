@@ -55,6 +55,7 @@ migrations/
 # Python #
 __pycache__/
 *.py[cod]
+*.ipynb_checkpoints/
 
 # OPS Files #
 *.ini
@@ -67,6 +68,7 @@ data.json
 *node_modules
 /dist
 *.hot-update.json
+*.hot-update.js
 
 # local env files
 .env.local
