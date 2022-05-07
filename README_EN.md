@@ -2,7 +2,7 @@
 
 [中文](README.md) [English](README_EN.md)
 
-<img src="README/intro.png" alt="intro" style="zoom:40%;" />
+<img src="README/intro.png" alt="intro" width="500" />
 
 ### Dependencies
 
@@ -88,7 +88,7 @@
 
    `npm run serve`
 
-   ![positioning](README/positioning.gif)
+   <img src="README/positioning.gif" width="700">
 
 8. Shut down the service
 
